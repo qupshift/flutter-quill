@@ -278,6 +278,30 @@ class QuillController extends ChangeNotifier {
       return;
     }
 
+
+   if (len > 0 && (data == null || (data is String && data.isEmpty))) {
+  final leaf = document.querySegmentLeafNode(index).leaf;
+
+  if (leaf != null && leaf is Embeddable) {
+    // Don't delete if it's an embed
+    _updateSelection(_selection);
+    notifyListeners();
+    return;
+  }
+
+  // Optional: also check for embed in deletion range
+final delta = document.toDelta().slice(index, index + len);
+final hasEmbed = delta.toList().any((op) => op.isInsert && op.data is Map);
+  if (hasEmbed) {
+    _updateSelection(_selection);
+    notifyListeners();
+    return;
+  }
+
+  // Else, allow normal deletion
+}
+
+
     Delta? delta;
     Style? style;
     if (len > 0 || data is! String || data.isNotEmpty) {
